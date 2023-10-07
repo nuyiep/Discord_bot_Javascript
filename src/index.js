@@ -14,7 +14,7 @@ const client = new Client({
 })
 
 client.on('ready', (c) => {
-	console.log(`🤗${c.user.tag} is online`)
+	console.log(`🤗${c.user.tag} is online`);
 });
 
 client.on('messageCreate', (message) => {
@@ -24,6 +24,47 @@ client.on('messageCreate', (message) => {
 	if (message.content == 'plau') {
 		message.reply('Pei Yun Lau');
 	}
+	// Check for a custom command to trigger the role change
+	if (message.content === '!movemembers') {
+		// Role-changing logic here
+		const piscinersRole = message.guild.roles.cache.find((r) => r.name === 'PISCINER');
+		const floatiesRole = message.guild.roles.cache.find((r) => r.name === 'FLOATY');
+	
+		if (!piscinersRole || !floatiesRole) {
+		  message.channel.send('Roles not found. Make sure the role names are correct.');
+		  return;
+		}
+	
+		const membersWithPiscinersRole = await message.guild.members.fetch();
+
+		// console.log(message.guild.members.cache);
+		// membersWithPiscinersRole = message.guild.members.cache.filter((member) =>
+		//   member.roles.cache.has(piscinersRole.id)
+		// );
+
+		// console.log()
+	
+		// membersWithPiscinersRole.forEach((member) => {
+		//   member.roles.remove(piscinersRole)
+		// 	.then(() => member.roles.add(floatiesRole))
+		// 	.catch((error) => {
+		// 	  console.error('Error moving member:', error);
+		// 	});
+		// });
+	
+		membersWithPiscinersRole.forEach((member) => {
+			if (member.roles.cache.has(piscinersRole.id)) {
+				member.roles
+					.remove(piscinersRole)
+					.then(() => member.roles.add(floatiesRole))
+					.catch((error) => {
+						console.error('Error moving member:', error);
+					});
+			}
+		});
+
+		message.channel.send('The "PISCINER" role has been changed to "FLOATY" for all members with that role.');
+	  }
 });
 
 client.on('interactionCreate', (interation) => {
