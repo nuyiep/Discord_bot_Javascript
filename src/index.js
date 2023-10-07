@@ -17,54 +17,47 @@ client.on('ready', (c) => {
 	console.log(`🤗${c.user.tag} is online`);
 });
 
+// Define an async function to handle role changes
+async function handleRoleChanges(message) {
+	const currentRole = message.guild.roles.cache.find((r) => r.name === 'PISCINER');
+	const amendedRole = message.guild.roles.cache.find((r) => r.name === 'FLOATY');
+
+	if (!currentRole || !amendedRole) {
+		message.channel.send('Roles not found. Make sure the role names are correct.');
+		return;
+	}
+
+	const membersWithCurrentRole = await message.guild.members.fetch();
+
+	membersWithCurrentRole.forEach((member) => {
+		if (member.roles.cache.has(currentRole.id)) {
+			member.roles
+				.remove(currentRole)
+				.then(() => member.roles.add(amendedRole))
+				.catch((error) => {
+					console.error('Error moving member:', error);
+				});
+		}
+	});
+
+	message.channel.send(`The "${currentRole.name}" role has been changed to "${amendedRole.name}" for all members with that role.`);
+}
+
 client.on('messageCreate', (message) => {
 	if (message.author.bot) {
-		return ;
+		return;
 	}
 	if (message.content == 'plau') {
 		message.reply('Pei Yun Lau');
 	}
-	// Check for a custom command to trigger the role change
 	if (message.content === '!movemembers') {
-		// Role-changing logic here
-		const piscinersRole = message.guild.roles.cache.find((r) => r.name === 'PISCINER');
-		const floatiesRole = message.guild.roles.cache.find((r) => r.name === 'FLOATY');
-	
-		if (!piscinersRole || !floatiesRole) {
-		  message.channel.send('Roles not found. Make sure the role names are correct.');
-		  return;
+		const allowedRole = ['PY', 'susu'];
+		if (message.member.roles.cache.some(role => allowedRole.includes(role.name))) {
+			handleRoleChanges(message);
+		} else {
+			message.reply('Opps, you have no permission to do this 🙃')
 		}
-	
-		const membersWithPiscinersRole = await message.guild.members.fetch();
-
-		// console.log(message.guild.members.cache);
-		// membersWithPiscinersRole = message.guild.members.cache.filter((member) =>
-		//   member.roles.cache.has(piscinersRole.id)
-		// );
-
-		// console.log()
-	
-		// membersWithPiscinersRole.forEach((member) => {
-		//   member.roles.remove(piscinersRole)
-		// 	.then(() => member.roles.add(floatiesRole))
-		// 	.catch((error) => {
-		// 	  console.error('Error moving member:', error);
-		// 	});
-		// });
-	
-		membersWithPiscinersRole.forEach((member) => {
-			if (member.roles.cache.has(piscinersRole.id)) {
-				member.roles
-					.remove(piscinersRole)
-					.then(() => member.roles.add(floatiesRole))
-					.catch((error) => {
-						console.error('Error moving member:', error);
-					});
-			}
-		});
-
-		message.channel.send('The "PISCINER" role has been changed to "FLOATY" for all members with that role.');
-	  }
+	}
 });
 
 client.on('interactionCreate', (interation) => {
